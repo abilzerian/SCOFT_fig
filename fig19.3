@@ -1,0 +1,55 @@
+(*Define the PDF functions*)
+phiL[p_, pM_, n_] := 
+ Module[{lambdaP, lambdaPM}, 
+  lambdaP = InverseBetaRegularized[2 p, n/2, 1/2];
+  lambdaPM = InverseBetaRegularized[1 - 2 pM, 1/2, n/2];
+  (lambdaP^((-n - 1)/2))*
+   Sqrt[-(lambdaP (lambdaPM - 1))/((lambdaP - 1) lambdaPM - 
+       2 Sqrt[(1 - lambdaP) lambdaP] Sqrt[(1 - lambdaPM) lambdaPM] + 
+       1)]*((1/(1/
+          lambdaP - (2 Sqrt[1 - lambdaP] Sqrt[lambdaPM])/(Sqrt[
+             lambdaP] Sqrt[1 - lambdaPM]) + 1/(1 - lambdaPM) - 1))^(n/
+       2))]
+
+phiH[p_, pM_, n_] := 
+ Module[{lambdaPP, lambdaPM}, 
+  lambdaPP = InverseBetaRegularized[2 p - 1, 1/2, n/2];
+  lambdaPM = InverseBetaRegularized[1 - 2 pM, 1/2, n/2];
+  ((1 - lambdaPP)^((-n - 1)/
+       2))*(((lambdaPP - 1) (lambdaPM - 1))/(lambdaPP (-lambdaPM) + 
+        2 Sqrt[(1 - lambdaPP) lambdaPP] Sqrt[(1 - 
+             lambdaPM) lambdaPM] + 1))^((n + 1)/2)]
+
+phi[p_, pM_, n_] := 
+ Piecewise[{{phiL[p, pM, n], p < 0.5}, {phiH[p, pM, n], p >= 0.5}}]
+
+(*Define the different values of pM*)
+pMValues = {.025, .1, .15, .5};
+
+(*Define line styles for better differentiation in black and white*)
+lineStyles = {Solid, Dashed, DotDashed, Dotted};
+
+(*Set a fixed n value,for example n=100*)
+n = 100;
+
+(*Generate the plot for each pM value*)
+plots = Table[
+   Plot[phi[p, pMValues[[i]], n], {p, 0.01, 0.99}, 
+    PlotRange -> {0, 5}, 
+    PlotStyle -> {ColorData[97, i], lineStyles[[i]]}], {i, 
+    Length[pMValues]}];
+
+(*Combine all plots into a single figure*)
+multiPlot = 
+  Show[plots, PlotRange -> {0, 5}, AxesLabel -> {"p", "\[CurlyPhi]"}, 
+   ImageSize -> Large];
+
+(*Create the legend*)
+legend = 
+  LineLegend[
+   Directive[ColorData[97, #], lineStyles[[#]]] & /@ 
+    Range[Length[pMValues]], 
+   ToString[" ", StandardForm] <> ToString[#] & /@ pMValues];
+
+(*Show the plot with the legend*)
+Legended[multiPlot, Placed[legend, {1.1, 0.5}]]
